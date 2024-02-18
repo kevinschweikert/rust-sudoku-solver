@@ -5,19 +5,21 @@ struct GridWrapper(Grid);
 
 impl fmt::Display for GridWrapper {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for r in 0..9 {
-            for c in 0..9 {
-                write!(f, "{} ", self.0[r][c])?;
-                if (c + 1) % 3 == 0 {
-                    write!(f, " ")?;
-                }
+        for (r, row) in self.0.iter().enumerate() {
+            for (c, col) in row.iter().enumerate() {
+                write!(
+                    f,
+                    "{} {}",
+                    col,
+                    if (c + 1) % 3 == 0 && c != 8 { " " } else { "" }
+                )?;
             }
             writeln!(f)?;
-            if (r + 1) % 3 == 0 {
+            if (r + 1) % 3 == 0 && r != 8 {
                 writeln!(f)?;
             }
         }
-        writeln!(f)
+        Ok(())
     }
 }
 
@@ -40,16 +42,9 @@ fn main() {
 
 fn is_valid(grid: &mut Grid, r: usize, c: usize, k: usize) -> bool {
     let not_in_row = !grid[r].contains(&k);
-    let not_in_column = (0..8).all(|i| grid[i][c] != k);
+    let not_in_column = (0..9).all(|i| grid[i][c] != k);
+    let not_in_box = (0..3).all(|i| (0..3).all(|j| grid[(r / 3) * 3 + i][(c / 3) * 3 + j] != k));
 
-    let r_start = ((r as f64 / 3.0).floor() * 3.0).round() as usize;
-    let r_end = r_start + 3;
-    let c_start = ((c as f64 / 3.0).floor() * 3.0).round() as usize;
-    let c_end = c_start + 3;
-
-    let not_in_box = !grid[r_start..r_end]
-        .iter()
-        .any(|cols| cols[c_start..c_end].iter().any(|i| *i == k));
     not_in_row && not_in_column && not_in_box
 }
 
